@@ -1,0 +1,1 @@
+C:\Users\Professional\PycharmProjects\DownloadMusic\.venv\Scripts\python.exe gui.py
