@@ -3,6 +3,7 @@ from threading import Thread
 from pytubefix import YouTube
 from Moduls.DownloadModul import download_video
 from Moduls.ConvertModul import convert_video_to_audio
+from Moduls.MetadataChanger import change_metadata_sound
 import dearpygui.dearpygui as dpg
 import os
 from os.path import isfile, join
@@ -35,7 +36,7 @@ def get_data(link):
     yt = YouTube(link)
     author = re.sub(r"^[ .]|[/<>:\"\\|?*]+|[ .]$", "_", yt.author)
     title = re.sub(r"^[ .]|[/<>:\"\\|?*]+|[ .]$", "_", yt.title)
-    return [f"{author} --- {title}", f"{author} - {title}", yt.thumbnail_url]
+    return [f"{author} --- {title}", f"{author} - {title}", yt.thumbnail_url, {'author': yt.author, 'title': yt.title}]
 
 
 def download(url, path_download, load_ind, dialog_err, download_pict=False):
@@ -43,12 +44,12 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
         dpg.show_item(load_ind)
         # check existing videos
         # check_raw_videos()
-        name_video, name_image, thumbnail_url = get_data(url)
+        name_video, name_image, thumbnail_url, metadata = get_data(url)
 
-        if not os.path.exists(f'tmp/raw/{name_video}.mp4'):
-            dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nDownload Video")
+        if not os.path.exists(f'{path_download}/{name_video}.mp3'):
+            dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nDownload Audio")
             # download video
-            t = Thread(target=download_video, args=(url, './tmp/RawVideos'))
+            t = Thread(target=download_video, args=(url, path_download))
             # t.daemon = True
             t.start()
             t.join(timeout=120)
@@ -66,15 +67,18 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
             if not os.path.exists(f'tmp/crops/{name_image}.jpg'):
                 crop(f'tmp/raw/{name_image}.jpg', f'tmp/crops/{name_image}.jpg')
 
-        dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nConvert Video")
-        convert_video_to_audio(
+        dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nChange Metadata")
+
+        change_metadata_sound(
             name=name_video,
-            result_folder=path_download,
             picture_path=f'./tmp/crops/{name_image}.jpg',
-            folder_video=f'./tmp/RawVideos'
+            author=metadata['author'],
+            title=metadata['title'],
+            sound_folder=path_download
         )
         error = None
-    except BaseException:
+    except BaseException as err:
+        print(err)
         download(url, path_download, load_ind, dialog_err, download_pict)
     except Exception as err:
         error = err
