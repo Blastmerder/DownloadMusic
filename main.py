@@ -1,4 +1,7 @@
 import json
+import os
+import sys
+
 import dearpygui.dearpygui as dpg
 from pytubefix import YouTube
 import re
@@ -7,6 +10,7 @@ from Generators.GenCard import Cards
 from Moduls.SearchModul import search_video
 from Moduls.GlobalDownloadModul import download
 import webbrowser
+from dearpygui_async import DearPyGuiAsync as dpga
 
 from Moduls.base_functions import update_textures
 
@@ -89,6 +93,8 @@ def download_all_songs():
     for video in cards.videos:
         download(video, path_to_download, load_ind, dialog_err)
 
+
+dpg_async = dpga()
 
 dpg.create_context()
 dpg.create_viewport(
@@ -196,7 +202,19 @@ dpg.show_viewport()
 # dpg.set_primary_window("Primary Window", True)
 # dpg.start_dearpygui()
 
-while dpg.is_dearpygui_running():
+
+IS_RUN = True
+
+
+def exit_storng():
+    sys.exit()
+
+
+dpg.set_exit_callback(exit_storng)
+
+while IS_RUN:
+    if not dpg.is_dearpygui_running():
+        break
     # insert here any code you would like to run in the render loop
     # you can manually stop by using stop_dearpygui()
 
@@ -211,5 +229,6 @@ while dpg.is_dearpygui_running():
 
     dpg.render_dearpygui_frame()
 
-
-dpg.destroy_context()
+if not dpg.is_dearpygui_running():
+    dpg.destroy_context()
+    sys.exit()

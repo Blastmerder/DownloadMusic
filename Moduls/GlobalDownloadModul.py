@@ -10,6 +10,13 @@ from os.path import isfile, join
 from os import listdir
 from urllib.request import urlretrieve
 from Moduls.CropModul import crop
+import requests
+
+
+def download_image(url, save_as):
+    response = requests.get(url)
+    with open(save_as, 'wb') as file:
+        file.write(response.content)
 
 
 def run_in_thread(fn):
@@ -50,6 +57,11 @@ def error_print():
 
 def download(url, path_download, load_ind, dialog_err, download_pict=False):
     try:
+        if not os.path.exists('tmp/raw'):
+            os.mkdir('tmp/raw')
+        if not os.path.exists('tmp/crops'):
+            os.mkdir('tmp/crops')
+
         dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nInit")
         dpg.show_item(load_ind)
         # check existing videos
@@ -61,12 +73,8 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
             download_video(url, path_download)
 
         if download_pict:
-            if not os.path.exists('tmp/raw'):
-                os.mkdir('tmp/raw')
-            if not os.path.exists('tmp/crops'):
-                os.mkdir('tmp/crops')
-
             if not os.path.exists(f'tmp/raw/{name_image}.jpg'):
+                # download_image(thumbnail_url, f'tmp/raw/{name_image}.jpg')
                 urlretrieve(thumbnail_url, f'tmp/raw/{name_image}.jpg')
             if not os.path.exists(f'tmp/crops/{name_image}.jpg'):
                 crop(f'tmp/raw/{name_image}.jpg', f'tmp/crops/{name_image}.jpg')
@@ -86,9 +94,9 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
         )
         error = None
     except BaseException as err:
-        download(url, path_download, load_ind, dialog_err, download_pict)
         error = err
         print(err)
+        download(url, path_download, load_ind, dialog_err, download_pict)
     except Exception as err:
         error = err
 

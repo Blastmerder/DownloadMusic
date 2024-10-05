@@ -22,6 +22,7 @@ def download_video(link, path='.'):
     def stop_process():
         global stop
         stop = True
+        raise TimeoutError
 
     timer = Timer(60, stop_process)
     timer.start()
