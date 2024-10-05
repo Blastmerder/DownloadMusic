@@ -5,12 +5,29 @@ on:
     branches: [ main ]
 
 jobs:
-  pyinstaller-build:
-    runs-on: windows-latest
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Create Executable
-        uses: sayyid5416/pyinstaller@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
-          python_ver: '3.6'
-          upload_exe_with_name: 'My executable'
-          options: --onefile, --name "main.py", --windowed, 
+          python-version: '3.7'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build Executable
+        run: pyinstaller --onefile --icon=DM.ico main.py
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v2
+        with:
+          name: downloader
+          path: dist/main.exe
