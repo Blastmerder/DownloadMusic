@@ -1,0 +1,16 @@
+name: Package Application with Pyinstaller
+
+on:
+  release:
+    branches: [ main ]
+
+jobs:
+  pyinstaller-build:
+    runs-on: <windows-latest / ubuntu-latest / ..... etc>
+    steps:
+      - name: Create Executable
+        uses: sayyid5416/pyinstaller@v1
+        with:
+          python_ver: '3.6'
+          upload_exe_with_name: 'My executable'
+          options: --onefile, --name "main.py", --windowed, 
