@@ -1,14 +1,17 @@
 import music_tag
+import moviepy.editor as mp
 import os
-from pydub import AudioSegment
 
 
 def change_metadata_sound(name, format_audio='mp3', sound_folder='', picture_path: str = None,
                           author: str = None, title: str = None):
-    if (os.path.exists(f'{sound_folder}/{name}.{format_audio}') and
-            os.path.getsize(f'{sound_folder}/{name}.{format_audio}')):
+    if os.path.exists(f'{sound_folder}/{name}.{format_audio}'):
         # Normalize volume
-        sound = AudioSegment.from_file(file=f'{sound_folder}/{name}.{format_audio}')
+        sound = mp.AudioFileClip(f"{sound_folder}/{name}.{format_audio}")
+        sound.write_audiofile(f"{sound_folder}/{name}_.{format_audio}")
+
+        os.remove(f"{sound_folder}/{name}.{format_audio}")
+        os.rename(f"{sound_folder}/{name}_.{format_audio}", f"{sound_folder}/{name}.{format_audio}")
 
         f = music_tag.load_file(f"{sound_folder}/{name}.{format_audio}")
 

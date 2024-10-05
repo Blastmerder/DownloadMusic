@@ -170,8 +170,8 @@ with dpg.viewport_menu_bar() as bar:
                 )
 
     # ToolTips
-    with dpg.tooltip(download_single):
-        dpg.add_text("Download It Video And Convert.")
+
+
 
     with dpg.tooltip(card):
         dpg.add_text("Add Card From URL.")

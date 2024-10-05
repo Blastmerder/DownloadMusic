@@ -4,6 +4,8 @@ from Moduls.YouTubeModul import YouTubeData
 from pytubefix import Search
 from Generators.BaseElm import BaseURLVideo
 from difflib import SequenceMatcher
+import time
+timing = time.time()
 
 
 def similarity(a, b):
@@ -15,32 +17,61 @@ def search_video(search_name, attempts=0):
     if attempts == 10:
         return None
     if True:
+        print('start')
         preformat = search_name.lower()
-
         video_name_format = re.split(r"\s-\s", preformat) if '-' in search_name else preformat.split(
             '"') if '"' in search_name else preformat
         song_name = video_name_format[1] if len(video_name_format) == 2 else video_name_format
 
         authors = video_name_format[0]
         name_list_org = re.split(r"\s[\S]\s", authors)
+        timing = time.time()
 
         s = Search(search_name)
 
-        videos = [v for v in s.videos]
+        raw_results = s.fetch_query()
+
+        try:
+            sections = raw_results['contents']['twoColumnSearchResultsRenderer'][
+                'primaryContents']['sectionListRenderer']['contents']
+        except KeyError:
+            sections = raw_results['onResponseReceivedCommands'][0][
+                'appendContinuationItemsAction']['continuationItems']
+        item_renderer = None
+        for s in sections:
+            if 'itemSectionRenderer' in s:
+                item_renderer = s['itemSectionRenderer']
+
+        videos = []
+        if item_renderer:
+            raw_video_list = item_renderer['contents']
+            for video_details in raw_video_list:
+                if 'videoRenderer' in video_details:
+                    print(f"https://www.youtube.com/watch?v={video_details['videoRenderer']['videoId']}")
+                    videos.append(
+                        YouTube(f"https://www.youtube.com/watch?v={video_details['videoRenderer']['videoId']}")
+                        )
 
         founded_video = {
             'authored': [],
             'reuploads': []
         }
 
+        print(time.time() - timing)
+
         for v in videos:
+            try:
+                info = v.vid_info
+            except:
+                continue
+            print(info['videoDetails'])
             # format for most speed
-            url = v.watch_url
+            url = f"https://www.youtube.com/watch?v={info['videoDetails']['videoId']}"
             # video = YouTube(url, use_oauth=True)
-            title_video = v.title.lower().replace(",", "")
-            author = v.author
-            length = v.length
-            thumbnail_url = v.thumbnail_url
+            title_video = info['videoDetails']['title'].lower().replace(",", "")
+            author = info['videoDetails']['author']
+            length = info['videoDetails']['lengthSeconds']
+            thumbnail_url = info['videoDetails']['thumbnail']['thumbnails'][-1]['url']
             have_author = False
 
             # Is it true author or not

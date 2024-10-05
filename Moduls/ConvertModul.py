@@ -29,11 +29,13 @@ def convert_video_to_audio(name, format_audio='mp3', format_video='mp4', folder_
         f['artist'] = name.split(' --- ')[0]
 
         if picture_path is None:
+            print(1)
             with open(f'{folder_tmp}/{name}.png', 'rb') as img_in:
                 f['artwork'] = img_in.read()
             with open(f'{folder_tmp}/{name}.png', 'rb') as img_in:
                 f.append_tag('artwork', img_in.read())
         else:
+            print(2)
             with open(f'{picture_path}', 'rb') as img_in:
                 f['artwork'] = img_in.read()
             with open(f'{picture_path}', 'rb') as img_in:

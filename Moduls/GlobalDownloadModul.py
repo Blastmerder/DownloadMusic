@@ -1,5 +1,5 @@
 import re
-from threading import Thread
+from threading import Thread, Timer
 from pytubefix import YouTube
 from Moduls.DownloadModul import download_video
 from Moduls.ConvertModul import convert_video_to_audio
@@ -17,6 +17,7 @@ def run_in_thread(fn):
         t = Thread(target=fn, args=k, kwargs=kw)
         t.start()
         return t
+
     return run
 
 
@@ -34,13 +35,22 @@ def check_raw_videos():
 
 def get_data(link):
     yt = YouTube(link)
-    author = re.sub(r"^[ .]|[/<>:\"\\|?*]+|[ .]$", "_", yt.author)
-    title = re.sub(r"^[ .]|[/<>:\"\\|?*]+|[ .]$", "_", yt.title)
+    try:
+        author = re.sub(r"^[ .]|[/<>:\"\\|?*]+|[ .]$", "_", yt.author)
+        title = re.sub(r"^[ .]|[/<>:\"\\|?*]+|[ .]$", "_", yt.title)
+    except:
+        author = yt.author
+        title = yt.title
     return [f"{author} --- {title}", f"{author} - {title}", yt.thumbnail_url, {'author': yt.author, 'title': yt.title}]
+
+
+def error_print():
+    raise TimeoutError
 
 
 def download(url, path_download, load_ind, dialog_err, download_pict=False):
     try:
+        dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nInit")
         dpg.show_item(load_ind)
         # check existing videos
         # check_raw_videos()
@@ -48,12 +58,7 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
 
         if not os.path.exists(f'{path_download}/{name_video}.mp3'):
             dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nDownload Audio")
-            # download video
-            t = Thread(target=download_video, args=(url, path_download))
-            # t.daemon = True
-            t.start()
-            t.join(timeout=120)
-            # name_video, name_image = download_video()
+            download_video(url, path_download)
 
         if download_pict:
             if not os.path.exists('tmp/raw'):
@@ -62,11 +67,14 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
                 os.mkdir('tmp/crops')
 
             if not os.path.exists(f'tmp/raw/{name_image}.jpg'):
-
                 urlretrieve(thumbnail_url, f'tmp/raw/{name_image}.jpg')
             if not os.path.exists(f'tmp/crops/{name_image}.jpg'):
                 crop(f'tmp/raw/{name_image}.jpg', f'tmp/crops/{name_image}.jpg')
 
+        if (os.path.exists(f'{path_download}/{name_video}.mp3') and
+                not os.path.getsize(f'{path_download}/{name_video}.mp3')):
+            os.remove(f'{path_download}/{name_video}.mp3')
+            raise FileNotFoundError
         dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nChange Metadata")
 
         change_metadata_sound(
@@ -78,15 +86,16 @@ def download(url, path_download, load_ind, dialog_err, download_pict=False):
         )
         error = None
     except BaseException as err:
-        print(err)
         download(url, path_download, load_ind, dialog_err, download_pict)
+        error = err
+        print(err)
     except Exception as err:
         error = err
 
     dpg.hide_item(load_ind)
     dpg.set_value(dpg.get_item_children(load_ind)[1][1], "Status Now: \nInit")
     dpg.show_item(dialog_err)
-    if error:
+    if error and error != '':
         dpg.set_value(dpg.get_item_children(dialog_err)[1][0], f"ERROR: \n{error}")
     else:
         dpg.set_value(dpg.get_item_children(dialog_err)[1][0], f"Completed Successfully")
