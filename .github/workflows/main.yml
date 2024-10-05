@@ -5,20 +5,12 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
-    runs-on: windows-latest
-
+  pyinstaller-build:
+    runs-on: <windows-latest / ubuntu-latest / ..... etc>
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Package Application
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: src/main.py
-        icon: src/textures/DM.ico
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: name-of-artifact
-        path: src/dist/windows
+      - name: Create Executable
+        uses: sayyid5416/pyinstaller@v1
+        with:
+          python_ver: '3.6'
+          upload_exe_with_name: 'My executable'
+          options: --onefile, --name "main.py", --windowed, 
