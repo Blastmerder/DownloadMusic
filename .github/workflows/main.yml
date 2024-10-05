@@ -21,8 +21,8 @@ jobs:
         run: ls
         
       - name: Install dependencies
-        run: pip install -r src/requirements.txt
-
+        run: pip install -r ./requirements.txt
+        
       - name: Install PyInstaller
         run: pip install pyinstaller
 
