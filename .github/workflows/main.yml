@@ -29,8 +29,13 @@ jobs:
       - name: Build Executable
         run: pyinstaller --onefile --icon=DM.ico main.py
 
-      - name: Upload Executable
-        uses: actions/upload-artifact@v4
+      - name: copying
+        run: |
+          cp -a ./settings ./dest
+          cp -a ./textures ./dest
+        
+
+      - uses: actions/upload-artifact@v4
         with:
           name: downloader
-          path: dist/main.exe
+          path: dist/*
